@@ -111,7 +111,7 @@ app_license = "MIT"
 # Testing
 # -------
 
-# before_tests = "mss_customization.install.before_tests"
+before_tests = "mss_customization.install.before_tests"
 
 # Overriding Whitelisted Methods
 # ------------------------------
@@ -119,4 +119,3 @@ app_license = "MIT"
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "mss_customization.event.get_events"
 # }
-
