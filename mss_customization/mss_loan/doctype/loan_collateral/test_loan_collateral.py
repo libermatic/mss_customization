@@ -5,6 +5,43 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
+from mss_customization.mss_loan.doctype.loan_collateral.loan_collateral \
+    import create_loan_collateral
+from mss_customization.mss_loan.doctype.gold_loan.test_gold_loan \
+    import make_gold_loan
+
 
 class TestLoanCollateral(unittest.TestCase):
-	pass
+    loan_name = None
+    fixture = None
+
+    def setUp(self):
+        loan = make_gold_loan(
+            collaterals=[]
+        )
+        self.loan_name = loan.name
+
+    def tearDown(self):
+        if self.fixture:
+            frappe.delete_doc_if_exists('Loan Collateral', self.fixture.name)
+            self.fixture = None
+        if self.loan_name:
+            loan = frappe.get_doc('Gold Loan', self.loan_name)
+            loan.cancel()
+            frappe.delete_doc_if_exists('Gold Loan', self.loan_name)
+            self.loan_name = None
+
+    def test_create_loan_collateral(self):
+        params = {
+            'loan': self.loan_name,
+            'value': 12000.0,
+            'type': '_Test Type',
+            'quantity': 3,
+        }
+        collateral = create_loan_collateral(params)
+        self.assertEquals(collateral.loan, params['loan'])
+        self.assertEquals(collateral.value, params['value'])
+        self.assertEquals(collateral.type, params['type'])
+        self.assertEquals(collateral.quantity, params['quantity'])
+        self.assertEquals(collateral.status, 'Open')
+        self.fixture = collateral
