@@ -18,8 +18,6 @@ class TestGoldLoan(unittest.TestCase):
             )
             if self.fixture.docstatus == 1:
                 self.fixture.cancel()
-                for item in collateral:
-                    item.cancel()
             frappe.delete_doc_if_exists(
                 'Gold Loan', self.fixture.name, force=1
             )
@@ -59,23 +57,27 @@ class TestGoldLoan(unittest.TestCase):
         self.fixture = loan
 
     def test_collaterals(self):
-        collateral = frappe._dict({
+        collaterals = [frappe._dict({
             'type': '_Test Collateral 1',
             'qty': 1,
             'value': 12000.0
-        })
-        loan = make_gold_loan(collaterals=[collateral])
+        })]
+        loan = make_gold_loan(collaterals=collaterals)
         assets = frappe.get_list(
             'Loan Collateral',
+            fields='*',
             filters={'loan': loan.name}
         )
         self.assertEqual(len(assets), 1)
-        for asset in assets:
-            self.assertEquals(asset.type, collateral.type)
-            self.assertEquals(asset.quantity, collateral.qty)
-            self.assertEquals(asset.value, collateral.value)
+        for idx, asset in enumerate(assets):
+            self.assertEquals(
+                asset.name,
+                loan.collaterals[idx].ref_loan_collateral
+            )
+            self.assertEquals(asset.type, collaterals[idx].type)
+            self.assertEquals(asset.quantity, collaterals[idx].qty)
+            self.assertEquals(asset.value, collaterals[idx].value)
             self.assertEquals(asset.status, 'Open')
-            self.assertEquals(asset.docstatus, 1)
         self.fixture = loan
 
     def test_cancel_on_collaterals(self):
@@ -85,8 +87,7 @@ class TestGoldLoan(unittest.TestCase):
             'Loan Collateral',
             filters={'loan': loan.name}
         )
-        for asset in assets:
-            self.assertEquals(asset.docstatus, 2)
+        self.assertEquals(len(assets), 0)
         self.fixture = loan
 
 
