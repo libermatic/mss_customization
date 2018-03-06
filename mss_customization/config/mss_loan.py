@@ -13,6 +13,21 @@ def get_data():
                     'name': 'Gold Loan',
                     'description': _("Gold loans")
                 },
+                {
+                    'type': 'doctype',
+                    'name': 'Loan Payment',
+                    'description': _("Payments receipt from Customer")
+                },
+            ],
+        },
+        {
+            'label': _("Setup"),
+            'items': [
+                {
+                    'type': 'doctype',
+                    'name': 'MSS Loan Settings',
+                    'description': _("MSS Loan Settings")
+                },
             ],
         },
     ]
