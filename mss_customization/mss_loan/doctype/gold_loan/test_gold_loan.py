@@ -31,14 +31,16 @@ class TestGoldLoan(unittest.TestCase):
 
     def test_foreclosure_date(self):
         loan = make_gold_loan()
-        self.assertEqual(loan.foreclosure_date, getdate('2018-10-12'))
+        self.assertEqual(
+            getdate(loan.foreclosure_date), getdate('2018-10-12')
+        )
         self.fixture = loan
 
     def test_gl_entries(self):
         loan = make_gold_loan()
         exp_gle = dict((d[0], d) for d in [
-            ['Loans on Collateral - _TC', 10000, 0, loan.name],
-            ['Cash - _TC', 0, 10000, None]
+            ['Loans on Collateral - _TC', 10000, 0, None],
+            ['Cash - _TC', 0, 10000, '_Test Customer']
         ])
         gl_entries = get_gold_loan_gle(loan.name)
         self.assertNotEqual(len(gl_entries), 0)
@@ -46,13 +48,13 @@ class TestGoldLoan(unittest.TestCase):
             self.assertEquals(exp_gle[gle.account][0], gle.account)
             self.assertEquals(exp_gle[gle.account][1], gle.debit)
             self.assertEquals(exp_gle[gle.account][2], gle.credit)
-            self.assertEquals(exp_gle[gle.account][3], gle.against_voucher)
+            self.assertEquals(exp_gle[gle.account][3], gle.against)
         self.fixture = loan
 
     def test_cancel_on_gl_entries(self):
         loan = make_gold_loan()
-        gl_entries = get_gold_loan_gle(loan.name)
         loan.cancel()
+        gl_entries = get_gold_loan_gle(loan.name)
         self.assertEqual(len(gl_entries), 0)
         self.fixture = loan
 
@@ -78,11 +80,11 @@ class TestGoldLoan(unittest.TestCase):
 
     def test_cancel_on_collaterals(self):
         loan = make_gold_loan()
+        loan.cancel()
         assets = frappe.get_list(
             'Loan Collateral',
             filters={'loan': loan.name}
         )
-        loan.cancel()
         for asset in assets:
             self.assertEquals(asset.docstatus, 2)
         self.fixture = loan
@@ -90,7 +92,7 @@ class TestGoldLoan(unittest.TestCase):
 
 def get_gold_loan_gle(voucher_no):
     return frappe.db.sql("""
-        SELECT account, debit, credit, against_voucher
+        SELECT account, debit, credit, against
         FROM `tabGL Entry`
         WHERE voucher_type='Gold Loan' AND voucher_no='{}'
         ORDER BY account ASC
@@ -100,11 +102,13 @@ def get_gold_loan_gle(voucher_no):
 def make_gold_loan(**kwargs):
     args = frappe._dict(kwargs)
     doc = frappe.new_doc('Gold Loan')
-    doc.customer = args.customer or '_Test Customer'
-    doc.posting_date = args.posting_date or '2017-12-12'
-    doc.company = args.company or '_Test Company'
-    doc.principal = args.principal or 10000.0
-    doc.interest = args.interest or 5.0
+    doc.update({
+        'customer': args.customer or '_Test Customer',
+        'posting_date': args.posting_date or '2017-12-12',
+        'company': args.company or '_Test Company',
+        'principal': args.principal or 10000.0,
+        'interest': args.interest or 5.0,
+    })
     if args.collaterals:
         for item in args.collaterals:
             doc.append('collaterals', item)
