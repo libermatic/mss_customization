@@ -6,6 +6,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import getdate
 import unittest
+from mss_customization.utils.queries import get_gle_by
+
+get_gold_loan_gle = get_gle_by('Gold Loan')
 
 
 class TestGoldLoan(unittest.TestCase):
@@ -13,13 +16,13 @@ class TestGoldLoan(unittest.TestCase):
 
     def tearDown(self):
         if self.fixture:
-            collateral = frappe.get_all(
-                'Loan Collateral', filters={'loan': self.fixture.name}
-            )
             if self.fixture.docstatus == 1:
                 self.fixture.cancel()
             frappe.delete_doc_if_exists(
                 'Gold Loan', self.fixture.name, force=1
+            )
+            collateral = frappe.get_all(
+                'Loan Collateral', filters={'loan': self.fixture.name}
             )
             for item in collateral:
                 frappe.delete_doc_if_exists(
@@ -29,13 +32,14 @@ class TestGoldLoan(unittest.TestCase):
 
     def test_foreclosure_date(self):
         loan = make_gold_loan()
+        self.fixture = loan
         self.assertEqual(
             getdate(loan.foreclosure_date), getdate('2018-10-12')
         )
-        self.fixture = loan
 
     def test_gl_entries(self):
         loan = make_gold_loan()
+        self.fixture = loan
         exp_gle = dict((d[0], d) for d in [
             ['Loans on Collateral - _TC', 10000, 0, None],
             ['Cash - _TC', 0, 10000, '_Test Customer']
@@ -47,14 +51,13 @@ class TestGoldLoan(unittest.TestCase):
             self.assertEquals(exp_gle[gle.account][1], gle.debit)
             self.assertEquals(exp_gle[gle.account][2], gle.credit)
             self.assertEquals(exp_gle[gle.account][3], gle.against)
-        self.fixture = loan
 
     def test_cancel_on_gl_entries(self):
         loan = make_gold_loan()
+        self.fixture = loan
         loan.cancel()
         gl_entries = get_gold_loan_gle(loan.name)
         self.assertEqual(len(gl_entries), 0)
-        self.fixture = loan
 
     def test_collaterals(self):
         collaterals = [frappe._dict({
@@ -63,6 +66,7 @@ class TestGoldLoan(unittest.TestCase):
             'value': 12000.0
         })]
         loan = make_gold_loan(collaterals=collaterals)
+        self.fixture = loan
         assets = frappe.get_list(
             'Loan Collateral',
             fields='*',
@@ -78,26 +82,16 @@ class TestGoldLoan(unittest.TestCase):
             self.assertEquals(asset.quantity, collaterals[idx].qty)
             self.assertEquals(asset.value, collaterals[idx].value)
             self.assertEquals(asset.status, 'Open')
-        self.fixture = loan
 
     def test_cancel_on_collaterals(self):
         loan = make_gold_loan()
+        self.fixture = loan
         loan.cancel()
         assets = frappe.get_list(
             'Loan Collateral',
             filters={'loan': loan.name}
         )
         self.assertEquals(len(assets), 0)
-        self.fixture = loan
-
-
-def get_gold_loan_gle(voucher_no):
-    return frappe.db.sql("""
-        SELECT account, debit, credit, against
-        FROM `tabGL Entry`
-        WHERE voucher_type='Gold Loan' AND voucher_no='{}'
-        ORDER BY account ASC
-    """.format(voucher_no), as_dict=1)
 
 
 def make_gold_loan(**kwargs):

@@ -23,12 +23,16 @@ class TestLoanCollateral(unittest.TestCase):
 
     def tearDown(self):
         if self.fixture:
-            frappe.delete_doc_if_exists('Loan Collateral', self.fixture.name)
+            frappe.delete_doc_if_exists(
+                'Loan Collateral', self.fixture.name, force=1
+            )
             self.fixture = None
         if self.loan_name:
             loan = frappe.get_doc('Gold Loan', self.loan_name)
             loan.cancel()
-            frappe.delete_doc_if_exists('Gold Loan', self.loan_name)
+            frappe.delete_doc_if_exists(
+                'Gold Loan', self.loan_name, force=1
+            )
             self.loan_name = None
 
     def test_create_loan_collateral(self):
