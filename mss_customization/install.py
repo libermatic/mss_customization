@@ -31,6 +31,8 @@ def _create_account(doc, company_name, company_abbr):
 
 def before_tests():
     frappe.clear_cache()
+    if not frappe.db.exists('Company', '_Test Company'):
+        return
     settings = frappe.get_single('MSS Loan Settings')
     settings.update({
         'months_to_foreclosure': 10,
@@ -42,3 +44,27 @@ def before_tests():
         })
     settings.save()
     frappe.db.commit()
+
+
+def after_wizard_complete(args=None):
+    """
+    Create new accounts and set Loan Settings.
+    """
+    print(args)
+    if frappe.defaults.get_global_default('country') != "India":
+        return
+    settings = frappe.get_doc('MSS Loan Settings', None)
+    settings.update({
+            'mode_of_payment': 'Cash',
+            'cost_center': frappe.db.get_value(
+                'Company', args.get('company_name'), 'cost_center'
+            ),
+        })
+    for key, value in settings_accounts.items():
+        account_name = _create_account(
+                value,
+                args.get('company_name'),
+                args.get('company_abbr')
+            )
+        settings.update({key: account_name})
+    settings.save()

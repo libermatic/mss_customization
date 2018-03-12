@@ -56,6 +56,7 @@ app_license = "MIT"
 
 # before_install = "mss_customization.install.before_install"
 # after_install = "mss_customization.install.after_install"
+setup_wizard_complete = "mss_customization.install.after_wizard_complete"
 
 # Desk Notifications
 # ------------------
