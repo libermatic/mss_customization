@@ -70,6 +70,14 @@ class GoldLoan(AccountsController):
         for item in self.collaterals:
             frappe.delete_doc('Loan Collateral', item.ref_loan_collateral)
 
+    def get_gl_dict(self, args):
+        gl_dict = frappe._dict({
+                'against_voucher_type': 'Gold Loan',
+                'against_voucher': self.name
+            })
+        gl_dict.update(args)
+        return super(GoldLoan, self).get_gl_dict(gl_dict)
+
     def make_gl_entries(self, cancel=0):
         payment_account = get_bank_cash_account(
             self.mode_of_payment, self.company

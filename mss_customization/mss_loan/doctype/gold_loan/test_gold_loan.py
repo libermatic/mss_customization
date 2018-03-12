@@ -51,6 +51,7 @@ class TestGoldLoan(unittest.TestCase):
             self.assertEquals(exp_gle[gle.account][1], gle.debit)
             self.assertEquals(exp_gle[gle.account][2], gle.credit)
             self.assertEquals(exp_gle[gle.account][3], gle.against)
+            self.assertEquals(loan.name, gle.against_voucher)
 
     def test_cancel_on_gl_entries(self):
         loan = make_gold_loan()
