@@ -37,6 +37,7 @@ def before_tests():
     settings.update({
         'months_to_foreclosure': 10,
         'mode_of_payment': 'Cash',
+        'cost_center': 'Main - _TC',
     })
     for key, value in settings_accounts.items():
         settings.update({
