@@ -136,7 +136,7 @@
   }, 
   {
    "allow_bulk_edit": 0, 
-   "allow_on_submit": 0, 
+   "allow_on_submit": 1, 
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
@@ -540,7 +540,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2018-03-06 17:26:14.857971", 
+ "modified": "2018-03-14 00:31:34.664672", 
  "modified_by": "Administrator", 
  "module": "MSS Loan", 
  "name": "Gold Loan", 

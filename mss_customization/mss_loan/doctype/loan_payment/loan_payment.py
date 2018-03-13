@@ -62,11 +62,11 @@ class LoanPayment(AccountsController):
 
     def on_submit(self):
         self.make_gl_entries()
-        self.update_foreclosure_date()
+        self.update_loan()
 
     def on_cancel(self):
         self.make_gl_entries(cancel=1)
-        self.update_foreclosure_date()
+        self.update_loan()
 
     def get_gl_dict(self, args):
         gl_dict = frappe._dict({
@@ -115,20 +115,30 @@ class LoanPayment(AccountsController):
             )
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
 
-    def update_foreclosure_date(self):
+    def update_loan(self):
         """
-            Updates foreclosure date of the Loan.
+            Updates foreclosure date and status of the Gold Loan.
             Also works for on cancel because paid_interests contains only items
             with docstatus = 1 and this method is run after the cancel is
             complete
         """
+        loan = frappe.get_doc('Gold Loan', self.loan)
+
         paid_interests = get_paid_interests(self.loan)
         months_to_foreclosure = frappe.get_value(
             'MSS Loan Settings', None, 'months_to_foreclosure'
         )
-        loan = frappe.get_doc('Gold Loan', self.loan)
         loan.foreclosure_date = add_months(
             loan.posting_date,
             cint(months_to_foreclosure) + paid_interests.count
         )
+
+        outstanding = get_outstanding(
+            self.loan, posting_date=self.posting_date
+        )
+        if outstanding == 0:
+            loan.status = 'Repaid'
+        elif loan.status != 'Open':
+            loan.status = 'Open'
+
         loan.save()

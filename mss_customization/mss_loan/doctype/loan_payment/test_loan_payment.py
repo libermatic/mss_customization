@@ -112,6 +112,25 @@ class TestLoanPayment(unittest.TestCase):
             getdate(foreclosure_date), getdate('2018-07-19')
         )
 
+    def test_sets_loan_status(self):
+        first = make_loan_payment(loan=self.loan_name_fixture)
+        payment = make_loan_payment(loan=self.loan_name_fixture, capital=9000)
+        self.fixtures = [first, payment]
+        status = frappe.get_value(
+            'Gold Loan', self.loan_name_fixture, 'status'
+        )
+        self.assertEqual(status, 'Repaid')
+
+    def test_sets_loan_status_on_cancel(self):
+        first = make_loan_payment(loan=self.loan_name_fixture)
+        payment = make_loan_payment(loan=self.loan_name_fixture, capital=9000)
+        payment.cancel()
+        self.fixtures = [first, payment]
+        status = frappe.get_value(
+            'Gold Loan', self.loan_name_fixture, 'status'
+        )
+        self.assertEqual(status, 'Open')
+
 
 def make_loan_payment(**kwargs):
     args = frappe._dict(kwargs)
