@@ -82,7 +82,7 @@ class TestGoldLoan(unittest.TestCase):
             self.assertEquals(asset.type, collaterals[idx].type)
             self.assertEquals(asset.quantity, collaterals[idx].qty)
             self.assertEquals(asset.value, collaterals[idx].value)
-            self.assertEquals(asset.status, 'Open')
+            self.assertEquals(asset.status, 'Blocked')
 
     def test_cancel_on_collaterals(self):
         loan = make_gold_loan()
@@ -101,7 +101,7 @@ class TestGoldLoan(unittest.TestCase):
         self.fixture = loan
         assets = frappe.get_list(
             'Loan Collateral',
-            fields='*',
+            fields=['status'],
             filters={'loan': loan.name}
         )
         for asset in assets:
@@ -111,11 +111,11 @@ class TestGoldLoan(unittest.TestCase):
         loan.save()
         assets = frappe.get_list(
             'Loan Collateral',
-            fields='*',
+            fields=['status'],
             filters={'loan': loan.name}
         )
         for asset in assets:
-            self.assertEqual(asset.status, 'Open')
+            self.assertEqual(asset.status, 'Blocked')
 
 
 def make_gold_loan(**kwargs):

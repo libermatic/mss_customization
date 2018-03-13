@@ -20,7 +20,7 @@ def create_loan_collateral(opts):
         'type': args.type,
         'quantity': args.quantity,
         'description': args.description,
-        'status': 'Open',
+        'status': 'Blocked',
     })
     doc.insert()
     return doc

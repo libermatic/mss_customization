@@ -25,9 +25,9 @@ def update(key, value):
 
 
 collateral_status_map = {
-    'Open': 'Open',
+    'Open': 'Blocked',
     'Repaid': 'Returned',
-    'Foreclosed': 'Liquidated',
+    'Foreclosed': 'Open',
 }
 
 
