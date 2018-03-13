@@ -94,6 +94,29 @@ class TestGoldLoan(unittest.TestCase):
         )
         self.assertEquals(len(assets), 0)
 
+    def test_update_status_on_collaterals(self):
+        loan = make_gold_loan()
+        loan.status = 'Repaid'
+        loan.save()
+        self.fixture = loan
+        assets = frappe.get_list(
+            'Loan Collateral',
+            fields='*',
+            filters={'loan': loan.name}
+        )
+        for asset in assets:
+            self.assertEqual(asset.status, 'Returned')
+
+        loan.status = 'Open'
+        loan.save()
+        assets = frappe.get_list(
+            'Loan Collateral',
+            fields='*',
+            filters={'loan': loan.name}
+        )
+        for asset in assets:
+            self.assertEqual(asset.status, 'Open')
+
 
 def make_gold_loan(**kwargs):
     args = frappe._dict(kwargs)

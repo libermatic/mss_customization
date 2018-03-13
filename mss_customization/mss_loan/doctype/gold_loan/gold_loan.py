@@ -24,6 +24,13 @@ def update(key, value):
     return fn
 
 
+collateral_status_map = {
+    'Open': 'Open',
+    'Repaid': 'Returned',
+    'Foreclosed': 'Liquidated',
+}
+
+
 class GoldLoan(AccountsController):
     def before_save(self):
         settings = frappe.get_single('MSS Loan Settings')
@@ -69,6 +76,15 @@ class GoldLoan(AccountsController):
         self.make_gl_entries(cancel=1)
         for item in self.collaterals:
             frappe.delete_doc('Loan Collateral', item.ref_loan_collateral)
+
+    def on_update_after_submit(self):
+        for item in self.collaterals:
+            frappe.set_value(
+                'Loan Collateral',
+                item.ref_loan_collateral,
+                'status',
+                collateral_status_map.get(self.status)
+            )
 
     def get_gl_dict(self, args):
         gl_dict = frappe._dict({
