@@ -14,6 +14,13 @@ from mss_customization.utils.transform import make_period
 
 
 class LoanPayment(AccountsController):
+    def validate(self):
+        outstanding = get_outstanding(
+            self.loan, posting_date=self.posting_date
+        )
+        if self.capital > outstanding:
+            frappe.throw('Capital amount cannot exceed outstanding amount')
+
     def before_save(self):
         gold_loan = frappe.get_doc('Gold Loan', self.loan)
         if not self.mode_of_payment:
@@ -27,12 +34,13 @@ class LoanPayment(AccountsController):
         if not self.interest_income_account:
             self.interest_income_account = gold_loan.interest_income_account
         outstanding = get_outstanding(
-            gold_loan.name, posting_date=self.posting_date
+            self.loan, posting_date=self.posting_date
         )
         interest = outstanding * gold_loan.interest / 100.0
         self.total_interest = self.interest_months * interest
         if self.interest_months > 0:
             self.make_interests(gold_loan, interest)
+        self.total_amount = self.capital + self.total_interest
 
     def make_interests(self, loan, interest_amount):
         paid_interests = get_paid_interests(
@@ -88,6 +96,21 @@ class LoanPayment(AccountsController):
                         'cost_center'
                     ),
                     'against': self.customer,
+                })
+            )
+        if self.capital > 0:
+            gl_entries.append(
+                self.get_gl_dict({
+                    'account': self.payment_account,
+                    'debit': self.capital,
+                    'against': self.customer,
+                })
+            )
+            gl_entries.append(
+                self.get_gl_dict({
+                    'account': self.loan_account,
+                    'credit': self.capital,
+                    'against': self.payment_account,
                 })
             )
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)

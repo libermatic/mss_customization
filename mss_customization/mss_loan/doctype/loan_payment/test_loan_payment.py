@@ -48,7 +48,7 @@ class TestLoanPayment(unittest.TestCase):
         self.assertEqual(payment.total_interest, 1000.0)
 
     def test_adds_proper_interest(self):
-        first = make_loan_payment(loan=self.loan_name_fixture)
+        first = make_loan_payment(loan=self.loan_name_fixture, capital=0)
         self.fixtures = [first]
         payment = make_loan_payment(
             loan=self.loan_name_fixture,
@@ -62,23 +62,32 @@ class TestLoanPayment(unittest.TestCase):
             self.assertEqual(interest.interest_amount, 500)
             self.assertIn(interest.period_code, [
                 '2017-09-19 - 2017-10-18', '2017-10-19 - 2017-11-18'
-            ]),
+            ])
 
     def test_gl_entries(self):
-        payment = make_loan_payment(loan=self.loan_name_fixture)
+        payment = make_loan_payment(
+            loan=self.loan_name_fixture,
+            interest_months=2,
+            capital=2000,
+        )
         self.fixtures = [payment]
         exp_gle = dict((d[0], d) for d in [
-            ['Cash - _TC', 500, 0, '_Test Customer'],
-            ['Interests on Loans - _TC', 0, 500, '_Test Customer'],
+            ['Cash - _TC', 3000, 0, '_Test Customer'],
+            ['Interests on Loans - _TC', 0, 1000, '_Test Customer'],
+            ['Loans on Collateral - _TC', 0, 2000, 'Cash - _TC'],
         ])
         gl_entries = get_loan_payment_gle(payment.name)
-        self.assertNotEqual(len(gl_entries), 0)
+        self.assertEqual(len(gl_entries), 3)
         for gle in gl_entries:
             self.assertEquals(exp_gle[gle.account][0], gle.account)
             self.assertEquals(exp_gle[gle.account][1], gle.debit)
             self.assertEquals(exp_gle[gle.account][2], gle.credit)
             self.assertEquals(exp_gle[gle.account][3], gle.against)
             self.assertEquals(self.loan_name_fixture, gle.against_voucher)
+
+    def test_raises_validation_error_when_capital_exceeds_outstanding(self):
+        with self.assertRaises(frappe.exceptions.ValidationError):
+            make_loan_payment(loan=self.loan_name_fixture, capital=10001)
 
     def test_extends_foreclosure_date(self):
         first = make_loan_payment(loan=self.loan_name_fixture)
@@ -111,7 +120,10 @@ def make_loan_payment(**kwargs):
         'loan': args.loan or '_Test Loan',
         'posting_date': args.posting_date or '2017-09-20',
         'company': args.company or '_Test Company',
-        'interest_months': args.interest_months or 1,
+        'interest_months':
+            args.interest_months if args.interest_months is not None else 1,
+        'capital':
+            args.capital if args.capital is not None else 1000.0,
     })
     if not args.do_not_insert:
         doc.insert()
