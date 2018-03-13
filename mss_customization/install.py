@@ -52,6 +52,22 @@ def before_tests():
     frappe.db.commit()
 
 
+def after_install():
+    df = frappe.get_meta('Journal Entry Account').get_field('reference_type')
+    if '\nGold Loan' not in df.options:
+        doc = frappe.new_doc('Property Setter')
+        value = df.options + '\nGold Loan'
+        doc.update({
+                'doc_type': 'Journal Entry Account',
+                'doctype_or_field': 'DocField',
+                'field_name': 'reference_type',
+                'property': 'options',
+                'property_type': 'Text',
+                'value': value
+            })
+        doc.insert(ignore_permissions=True)
+
+
 def after_wizard_complete(args=None):
     """
     Create new accounts and set Loan Settings.
