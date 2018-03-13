@@ -9,6 +9,7 @@ import unittest
 from mss_customization.utils.queries import get_gle_by
 
 get_gold_loan_gle = get_gle_by('Gold Loan')
+get_jv_gle = get_gle_by('Journal Voucher')
 
 
 class TestGoldLoan(unittest.TestCase):
@@ -45,7 +46,7 @@ class TestGoldLoan(unittest.TestCase):
             ['Cash - _TC', 0, 10000, '_Test Customer']
         ])
         gl_entries = get_gold_loan_gle(loan.name)
-        self.assertNotEqual(len(gl_entries), 0)
+        self.assertEqual(len(gl_entries), 2)
         for gle in gl_entries:
             self.assertEquals(exp_gle[gle.account][0], gle.account)
             self.assertEquals(exp_gle[gle.account][1], gle.debit)
@@ -59,6 +60,23 @@ class TestGoldLoan(unittest.TestCase):
         loan.cancel()
         gl_entries = get_gold_loan_gle(loan.name)
         self.assertEqual(len(gl_entries), 0)
+
+    def test_gl_entries_when_foreclosed(self):
+        loan = make_gold_loan()
+        self.fixture = loan
+        loan.status = 'Foreclosed'
+        loan.save()
+        exp_gle = dict((d[0], d) for d in [
+            ['Loans on Collateral - _TC', 0, 10000],
+            ['Foreclosed Collateral - _TC', 10000, 0]
+        ])
+        gl_entries = get_jv_gle(loan.foreclosure_jv)
+        self.assertEqual(len(gl_entries), 2)
+        for gle in gl_entries:
+            self.assertEquals(exp_gle[gle.account][0], gle.account)
+            self.assertEquals(exp_gle[gle.account][1], gle.debit)
+            self.assertEquals(exp_gle[gle.account][2], gle.credit)
+            self.assertEquals(loan.name, gle.against_voucher)
 
     def test_collaterals(self):
         collaterals = [frappe._dict({

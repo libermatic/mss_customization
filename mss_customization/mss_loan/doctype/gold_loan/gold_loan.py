@@ -110,3 +110,7 @@ class GoldLoan(AccountsController):
             })
         ]
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
+
+
+def make_foreclosure_jv(loan):
+    pass
