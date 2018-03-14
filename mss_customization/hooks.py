@@ -80,13 +80,12 @@ setup_wizard_complete = "mss_customization.install.after_wizard_complete"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+    'Journal Entry': {
+        'on_cancel':
+            "mss_customization.mss_loan.doctype.gold_loan.gold_loan.update_loan_on_jv_cancel",
+    }
+}
 
 # Scheduled Tasks
 # ---------------
