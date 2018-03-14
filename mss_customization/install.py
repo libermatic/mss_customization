@@ -12,8 +12,8 @@ settings_accounts = {
         'account_type': 'Income Account',
         'parent_account': 'Direct Income',
     },
-    'liquidated_collateral_account': {
-        'account_name': 'Liquidated Collateral',
+    'foreclosed_collateral_account': {
+        'account_name': 'Foreclosed Collateral',
         'account_type': 'Stock',
         'parent_account': 'Stock Assets',
     },
