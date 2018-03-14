@@ -14,7 +14,6 @@ settings_accounts = {
     },
     'foreclosed_collateral_account': {
         'account_name': 'Foreclosed Collateral',
-        'account_type': 'Stock',
         'parent_account': 'Stock Assets',
     },
 }

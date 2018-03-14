@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from copy import deepcopy
 from functools import partial
 import frappe
-from frappe.utils import cint, add_months
+from frappe.utils import cint, add_months, today
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts.doctype.sales_invoice.sales_invoice \
@@ -14,6 +14,7 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice \
 from mss_customization.utils.fp import compose
 from mss_customization.mss_loan.doctype.loan_collateral.loan_collateral \
     import create_loan_collateral
+from mss_customization.utils.queries import get_outstanding
 
 
 def update(key, value):
@@ -112,5 +113,64 @@ class GoldLoan(AccountsController):
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
 
 
-def make_foreclosure_jv(loan):
-    pass
+def make_foreclosure_jv(loan_name, posting_date):
+    loan = frappe.get_doc('Gold Loan', loan_name)
+    je = frappe.new_doc('Journal Entry')
+    je.update({
+        'title': loan.customer,
+        'voucher_type': 'Journal Entry',
+        'company': loan.company,
+        'posting_date': posting_date,
+    })
+    outstanding = get_outstanding(loan_name)
+    je.set('accounts', [
+        {
+            'account': loan.loan_account,
+            'credit_in_account_currency': outstanding,
+            'reference_type': 'Gold Loan',
+            'reference_name': loan_name,
+        },
+        {
+            'account': frappe.get_value(
+                'MSS Loan Settings',
+                None,
+                'foreclosed_collateral_account'
+            ),
+            'debit_in_account_currency': outstanding,
+            'reference_type': 'Gold Loan',
+            'reference_name': loan_name,
+        },
+    ])
+    je.insert()
+    je.submit()
+    loan.update({
+        'foreclosure_jv': je.name,
+        'status': 'Foreclosed',
+    })
+    loan.save()
+    return je.name
+
+
+def update_loan_on_jv_cancel(je, method=None):
+    loan = None
+    for item in je.accounts:
+        if item.reference_type == 'Gold Loan':
+            loan = frappe.get_doc('Gold Loan', item.reference_name)
+            break
+    if loan:
+        loan.update({
+            'foreclosure_jv': None,
+            'status': 'Open',
+        })
+        loan.save()
+
+
+def cancel_foreclosure_jv(loan_name):
+    foreclosure_jv = frappe.get_value(
+        'Gold Loan', loan_name, 'foreclosure_jv'
+    )
+    if not foreclosure_jv:
+        frappe.throw('No Journal Entry to cancel')
+    je = frappe.get_doc('Journal Entry', foreclosure_jv)
+    je.cancel()
+    update_loan_on_jv_cancel(je)

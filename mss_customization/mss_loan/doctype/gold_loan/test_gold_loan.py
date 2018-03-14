@@ -7,9 +7,11 @@ import frappe
 from frappe.utils import getdate
 import unittest
 from mss_customization.utils.queries import get_gle_by
+from mss_customization.mss_loan.doctype.gold_loan.gold_loan \
+    import make_foreclosure_jv, cancel_foreclosure_jv
 
 get_gold_loan_gle = get_gle_by('Gold Loan')
-get_jv_gle = get_gle_by('Journal Voucher')
+get_jv_gle = get_gle_by('Journal Entry')
 
 
 class TestGoldLoan(unittest.TestCase):
@@ -17,6 +19,17 @@ class TestGoldLoan(unittest.TestCase):
 
     def tearDown(self):
         if self.fixture:
+            self.fixture.reload()
+            if self.fixture.foreclosure_jv:
+                jv = frappe.get_doc(
+                    'Journal Entry', self.fixture.foreclosure_jv
+                )
+                if jv.docstatus == 1:
+                    jv.cancel()
+                frappe.delete_doc_if_exists(
+                    'Journal Entry', self.fixture.foreclosure_jv, force=1
+                )
+            self.fixture.reload()
             if self.fixture.docstatus == 1:
                 self.fixture.cancel()
             frappe.delete_doc_if_exists(
@@ -61,22 +74,63 @@ class TestGoldLoan(unittest.TestCase):
         gl_entries = get_gold_loan_gle(loan.name)
         self.assertEqual(len(gl_entries), 0)
 
-    def test_gl_entries_when_foreclosed(self):
+    def test_make_foreclosure_jv(self):
         loan = make_gold_loan()
         self.fixture = loan
-        loan.status = 'Foreclosed'
-        loan.save()
+        jv_name = make_foreclosure_jv(loan.name, posting_date='2018-03-12')
         exp_gle = dict((d[0], d) for d in [
             ['Loans on Collateral - _TC', 0, 10000],
             ['Foreclosed Collateral - _TC', 10000, 0]
         ])
-        gl_entries = get_jv_gle(loan.foreclosure_jv)
+        gl_entries = get_jv_gle(jv_name)
         self.assertEqual(len(gl_entries), 2)
         for gle in gl_entries:
             self.assertEquals(exp_gle[gle.account][0], gle.account)
             self.assertEquals(exp_gle[gle.account][1], gle.debit)
             self.assertEquals(exp_gle[gle.account][2], gle.credit)
             self.assertEquals(loan.name, gle.against_voucher)
+
+    def test_foreclosure_jv(self):
+        loan = make_gold_loan()
+        self.fixture = loan
+        jv_name = make_foreclosure_jv(loan.name, posting_date='2018-03-12')
+        foreclosure_jv = frappe.get_value(
+            'Gold Loan', loan.name, 'foreclosure_jv'
+        )
+        self.assertEqual(jv_name, foreclosure_jv)
+
+    def test_cancel_foreclosure_jv(self):
+        loan = make_gold_loan()
+        self.fixture = loan
+        jv_name = make_foreclosure_jv(loan.name, posting_date='2018-03-12')
+        cancel_foreclosure_jv(loan.name)
+        jv = frappe.get_doc('Journal Entry', jv_name)
+        self.assertEqual(jv.docstatus, 2)
+        gl_entries = get_jv_gle(jv_name)
+        self.assertEqual(len(gl_entries), 0)
+        loan_status, foreclosure_jv = frappe.get_value(
+            'Gold Loan', loan.name, ['status', 'foreclosure_jv']
+        )
+        self.assertEqual(loan_status, 'Open')
+        self.assertEqual(foreclosure_jv, None)
+        frappe.delete_doc_if_exists(
+            'Journal Entry', jv_name, force=1
+        )
+
+    def test_loan_on_jv_cancel(self):
+        loan = make_gold_loan()
+        self.fixture = loan
+        jv_name = make_foreclosure_jv(loan.name, posting_date='2018-03-12')
+        jv = frappe.get_doc('Journal Entry', jv_name)
+        jv.cancel()
+        loan_status, foreclosure_jv = frappe.get_value(
+            'Gold Loan', loan.name, ['status', 'foreclosure_jv']
+        )
+        self.assertEqual(loan_status, 'Open')
+        self.assertEqual(foreclosure_jv, None)
+        frappe.delete_doc_if_exists(
+            'Journal Entry', jv_name, force=1
+        )
 
     def test_collaterals(self):
         collaterals = [frappe._dict({
