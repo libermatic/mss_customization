@@ -18,7 +18,7 @@ class LoanPayment(AccountsController):
         outstanding = get_outstanding(
             self.loan, posting_date=self.posting_date
         )
-        if self.capital > outstanding:
+        if self.capital_amount > outstanding:
             frappe.throw('Capital amount cannot exceed outstanding amount')
 
     def before_save(self):
@@ -40,9 +40,10 @@ class LoanPayment(AccountsController):
         self.total_interest = self.interest_months * interest
         if self.interest_months > 0:
             self.make_interests(gold_loan, interest)
-        self.total_amount = self.capital + self.total_interest
+        self.total_amount = self.capital_amount + self.total_interest
 
     def make_interests(self, loan, interest_amount):
+        self.interests = []
         paid_interests = get_paid_interests(
             self.loan, posting_date=self.posting_date
         )
@@ -98,18 +99,18 @@ class LoanPayment(AccountsController):
                     'against': self.customer,
                 })
             )
-        if self.capital > 0:
+        if self.capital_amount > 0:
             gl_entries.append(
                 self.get_gl_dict({
                     'account': self.payment_account,
-                    'debit': self.capital,
+                    'debit': self.capital_amount,
                     'against': self.customer,
                 })
             )
             gl_entries.append(
                 self.get_gl_dict({
                     'account': self.loan_account,
-                    'credit': self.capital,
+                    'credit': self.capital_amount,
                     'against': self.payment_account,
                 })
             )
