@@ -35,4 +35,21 @@ def get_data():
                 },
             ],
         },
+        {
+            'label': _("Reports"),
+            'items': [
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Loan Summary",
+                    "doctype": _("Loan Summary"),
+                },
+                {
+                    "type": "report",
+                    "is_query_report": True,
+                    "name": "Account Statement",
+                    "doctype": _("Account Statement"),
+                },
+            ],
+        },
     ]
