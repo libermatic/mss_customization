@@ -2,7 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Gold Loan', {
-  refresh: function(frm) {},
   onload: async function(frm) {
     const { message: settings = {} } = await frappe.db.get_value(
       'MSS Loan Settings',

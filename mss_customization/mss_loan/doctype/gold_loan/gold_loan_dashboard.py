@@ -8,9 +8,10 @@ from frappe import _
 
 def get_data():
     return {
+        'fieldname': 'loan',
         'transactions': [
             {
-                'label': _('Payment'),
+                'label': _('Transactions'),
                 'items': ['Loan Payment'],
             },
         ],
