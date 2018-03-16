@@ -25,6 +25,11 @@ def get_data():
             'items': [
                 {
                     'type': 'doctype',
+                    'name': 'Collateral Type',
+                    'description': _("Types of loan Collaterals")
+                },
+                {
+                    'type': 'doctype',
                     'name': 'MSS Loan Settings',
                     'description': _("MSS Loan Settings")
                 },
