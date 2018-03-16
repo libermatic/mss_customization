@@ -100,17 +100,17 @@ class GoldLoan(AccountsController):
         payment_account = get_bank_cash_account(
             self.mode_of_payment, self.company
         )
-        gl_entries = [
-            self.get_gl_dict({
+        gl_entries = map(self.get_gl_dict, [
+            {
                 'account': self.loan_account,
                 'debit': self.principal,
-            }),
-            self.get_gl_dict({
+            },
+            {
                 'account': payment_account.get('account'),
                 'credit': self.principal,
                 'against': self.customer,
-            })
-        ]
+            },
+        ])
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
 
 

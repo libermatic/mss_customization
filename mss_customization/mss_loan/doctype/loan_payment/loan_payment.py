@@ -80,15 +80,13 @@ class LoanPayment(AccountsController):
     def make_gl_entries(self, cancel=0):
         gl_entries = []
         if self.interest_months > 0:
-            gl_entries.append(
-                self.get_gl_dict({
+            gl_entries += map(self.get_gl_dict, [
+                {
                     'account': self.payment_account,
                     'debit': self.total_interest,
                     'against': self.customer,
-                })
-            )
-            gl_entries.append(
-                self.get_gl_dict({
+                },
+                {
                     'account': self.interest_income_account,
                     'credit': self.total_interest,
                     'cost_center': frappe.db.get_value(
@@ -97,23 +95,21 @@ class LoanPayment(AccountsController):
                         'cost_center'
                     ),
                     'against': self.customer,
-                })
-            )
+                }
+            ])
         if self.capital_amount > 0:
-            gl_entries.append(
-                self.get_gl_dict({
+            gl_entries += map(self.get_gl_dict, [
+                {
                     'account': self.payment_account,
                     'debit': self.capital_amount,
                     'against': self.customer,
-                })
-            )
-            gl_entries.append(
-                self.get_gl_dict({
+                },
+                {
                     'account': self.loan_account,
                     'credit': self.capital_amount,
                     'against': self.payment_account,
-                })
-            )
+                }
+            ])
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
 
     def update_loan(self):
