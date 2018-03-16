@@ -73,6 +73,7 @@ def get_outstanding(loan, posting_date=None):
             `tabGL Entry` as GLEntry,
             `tabGold Loan` as GoldLoan
         WHERE GLEntry.against_voucher_type = 'Gold Loan'
+        AND GLEntry.against_voucher = GoldLoan.name
         AND GLEntry.account = GoldLoan.loan_account
         AND {}
     """.format(" AND ".join(conds)))
