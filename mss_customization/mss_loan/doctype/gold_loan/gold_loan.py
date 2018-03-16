@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from copy import deepcopy
 from functools import partial
 import frappe
-from frappe.utils import cint, add_months, today
+from frappe.utils import cint, add_months
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts.doctype.sales_invoice.sales_invoice \
@@ -43,6 +43,7 @@ class GoldLoan(AccountsController):
             self.interest_income_account = settings.interest_income_account
 
     def before_submit(self):
+        self.status = 'Open'
         months_to_foreclosure = cint(
             frappe.get_value(
                 'MSS Loan Settings', None, 'months_to_foreclosure'
