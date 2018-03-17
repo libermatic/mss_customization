@@ -45,6 +45,13 @@ frappe.ui.form.on('Gold Loan', {
         );
       });
     }
+    if (frm.doc.docstatus == 1) {
+      frm.page.add_menu_item(__('Account Statement'), function(e) {
+        frappe.set_route('query-report', 'Account Statement', {
+          loan: frm.doc['name'],
+        });
+      });
+    }
   },
   onload: async function(frm) {
     const { message: settings = {} } = await frappe.db.get_value(
