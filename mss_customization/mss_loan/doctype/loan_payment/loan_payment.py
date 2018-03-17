@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import add_months, cint
+from frappe.utils import add_months, cint, getdate
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts.doctype.sales_invoice.sales_invoice \
@@ -56,7 +56,7 @@ class LoanPayment(AccountsController):
         )
         for day in interest_days:
             self.append('interests', {
-                'period_label': '',
+                'period_label': getdate(day).strftime('%b, %Y'),
                 'period_code': make_period(day),
                 'interest_amount': interest_amount
             })
