@@ -21,12 +21,13 @@ def make_row(current_date):
         print(latest)
         return [
             loan.name,
+            loan.posting_date,
             loan.customer,
             loan.principal,
             loan.foreclosure_date,
             outstanding,
             interest * unpaid_months,
-            unpaid_months,
+            interest and unpaid_months,
             latest and latest.get('posting_date'),
             latest and latest.get('period_label'),
         ]
@@ -36,6 +37,7 @@ def make_row(current_date):
 def execute(filters=None):
     columns = [
         _("Loan ID") + ":Link/Gold Loan:90",
+        _("Loan Date") + ":Date:90",
         _("Customer") + ":Link/Customer:160",
         _("Loan Amount") + ":Currency/currency:90",
         _("Foreclosure Date") + ":Date:90",
@@ -52,7 +54,7 @@ def execute(filters=None):
             'posting_date'
         ],
         filters=filters,
-        order_by='posting_date'
+        order_by='posting_date',
     )
     data = map(make_row(today()), loans)
     return columns, data
