@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 from functools import partial
+from copy import deepcopy
 from dateutil.relativedelta import relativedelta
 from frappe.utils import getdate, add_months, add_days
 from mss_customization.utils.fp import compose
@@ -32,3 +33,11 @@ def month_diff(d1, d2):
     """Return d1 - d2 in months without the days portion"""
     r = relativedelta(getdate(d1), getdate(d2))
     return r.years * 12 + r.months
+
+
+def update(key, value):
+    def fn(item):
+        new_item = deepcopy(item)
+        new_item.update({key: value})
+        return new_item
+    return fn
