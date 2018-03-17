@@ -101,6 +101,7 @@ class GoldLoan(AccountsController):
                 'account': payment_account.get('account'),
                 'credit': self.principal,
                 'against': self.customer,
+                'remarks': 'Loan disbursed',
             },
         ])
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
@@ -115,6 +116,7 @@ def make_foreclosure_jv(loan_name, posting_date):
         'voucher_type': 'Journal Entry',
         'company': loan.company,
         'posting_date': posting_date,
+        'user_remark': 'Loan foreclosed',
     })
     outstanding = get_outstanding(loan_name)
     je.set('accounts', [
