@@ -114,6 +114,7 @@ class GoldLoan(AccountsController):
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
 
 
+@frappe.whitelist()
 def make_foreclosure_jv(loan_name, posting_date):
     loan = frappe.get_doc('Gold Loan', loan_name)
     je = frappe.new_doc('Journal Entry')
@@ -166,6 +167,7 @@ def update_loan_on_jv_cancel(je, method=None):
         loan.save()
 
 
+@frappe.whitelist()
 def cancel_foreclosure_jv(loan_name):
     foreclosure_jv = frappe.get_value(
         'Gold Loan', loan_name, 'foreclosure_jv'
