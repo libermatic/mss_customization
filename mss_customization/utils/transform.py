@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 from functools import partial
+from dateutil.relativedelta import relativedelta
 from frappe.utils import getdate, add_months, add_days
 from mss_customization.utils.fp import compose
 
@@ -25,3 +26,9 @@ def get_bound_dates(period, as_date=False):
     if not as_date:
         return {'start_date': start_date, 'end_date': end_date}
     return {'start_date': getdate(start_date), 'end_date': getdate(end_date)}
+
+
+def month_diff(d1, d2):
+    """Return d1 - d2 in months without the days portion"""
+    r = relativedelta(getdate(d1), getdate(d2))
+    return r.years * 12 + r.months

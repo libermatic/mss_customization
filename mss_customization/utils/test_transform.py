@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import unittest
 from mss_customization.utils.transform \
-    import make_period, get_bound_dates
+    import make_period, get_bound_dates, month_diff
 from datetime import date
 
 
@@ -33,3 +33,12 @@ class TestTransform(unittest.TestCase):
                 'end_date': date(year=2018, month=1, day=11),
             },
         )
+
+    def test_month_diff(self):
+        self.assertEqual(month_diff('2017-12-12', '2017-10-10'), 2)
+
+    def test_month_diff_within_a_month(self):
+        self.assertEqual(month_diff('2017-12-12', '2017-11-15'), 0)
+
+    def test_month_diff_negative(self):
+        self.assertEqual(month_diff('2017-12-12', '2018-02-15'), -2)
