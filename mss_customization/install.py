@@ -57,13 +57,13 @@ def after_install():
         doc = frappe.new_doc('Property Setter')
         value = df.options + '\nGold Loan'
         doc.update({
-                'doc_type': 'Journal Entry Account',
-                'doctype_or_field': 'DocField',
-                'field_name': 'reference_type',
-                'property': 'options',
-                'property_type': 'Text',
-                'value': value
-            })
+            'doc_type': 'Journal Entry Account',
+            'doctype_or_field': 'DocField',
+            'field_name': 'reference_type',
+            'property': 'options',
+            'property_type': 'Text',
+            'value': value
+        })
         doc.insert(ignore_permissions=True)
 
 
@@ -71,21 +71,20 @@ def after_wizard_complete(args=None):
     """
     Create new accounts and set Loan Settings.
     """
-    print(args)
     if frappe.defaults.get_global_default('country') != "India":
         return
     settings = frappe.get_doc('MSS Loan Settings', None)
     settings.update({
-            'mode_of_payment': 'Cash',
-            'cost_center': frappe.db.get_value(
-                'Company', args.get('company_name'), 'cost_center'
-            ),
-        })
+        'mode_of_payment': 'Cash',
+        'cost_center': frappe.db.get_value(
+            'Company', args.get('company_name'), 'cost_center'
+        ),
+    })
     for key, value in settings_accounts.items():
         account_name = _create_account(
-                value,
-                args.get('company_name'),
-                args.get('company_abbr')
-            )
+            value,
+            args.get('company_name'),
+            args.get('company_abbr')
+        )
         settings.update({key: account_name})
     settings.save()
