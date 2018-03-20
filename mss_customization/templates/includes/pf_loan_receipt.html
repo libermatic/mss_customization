@@ -1,0 +1,135 @@
+<style>
+  .print-format {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+  @media screen {
+    .print-format {
+      width: 148mm;
+      padding: 10mm;
+      min-height: 210mm;
+    }
+  }
+  .print-format div.mss_body {
+    flex: 1 1 auto;
+  }
+  .print-format div.mss_footer {
+    padding-top: 0.5em;
+    border-top: 1px solid {{ style.border_color }};
+  }
+  .print-format h1 {
+    font-size: 1.5em;
+    text-align: right;
+    padding-bottom: 0.25em;
+    padding-right: 1em;
+    border-bottom: 1px solid {{ style.border_color }};
+  }
+  .print-format dl {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .print-format dl > div {
+    width: 100%;
+    padding: 0.25em 0;
+  }
+  .print-format dl > div.mss_half {
+    width: 50%;
+  }
+  .print-format dl dt, dl dd {
+    display: inline;
+    font-weight: normal;
+  }
+  .print-format dl dt::after {
+    content: ": ";
+  }
+  .print-format dl dd {
+    font-weight: bold;1
+  }
+  .print-format table caption {
+    color: inherit;
+    text-transform: uppercase;
+  }
+  .print-format .mss_footer > p.mss_printer {
+    font-size: 0.9em;
+  }
+</style>
+<div class="mss_header">
+  {% block header %}{% endblock %}
+</div>
+
+<div class="mss_body">
+  <h1>{{ doc.name }}</h1>
+  <dl>
+    <div class="mss_half">
+      <dt>Loan Date</dt>
+      <dd>{{ doc.get_formatted('posting_date') }}</dd>
+    </div>
+    <div class="mss_half">
+      <dt>Valid Till</dt>
+      <dd>{{ doc.get_formatted('foreclosure_date') }}</dd>
+    </div>
+    <div>
+      <dt>Name of Party</dt>
+      <dd>{{ frappe.db.get_value('Customer', doc.customer, 'customer_name') }}</dd>
+    </div>
+    {% set address = frappe.db.get_value("Address", {"address_title": doc.customer}, ["address_line1", "city"]) %}
+    {% if not address %}
+      {% set dynalink = frappe.db.get_value("Dynamic Link", {"link_doctype": "Customer", "parenttype": "Address", "link_name": doc.customer}, "parent") %}
+      {% set address = frappe.db.get_value("Address", dynalink, ["address_line1", "city"]) if dynalink else None%}
+    {% endif %}
+    {% if address %}
+    <div>
+      <dt>Address</dt>
+      <dd>{{ address|join(", ") }}</dd>
+    </div>
+    {% endif %}
+    <div>
+      <dt>Loan Amount</dt>
+      <dd>{{ doc.get_formatted('principal') }}</dd>
+    </div>
+    <div>
+      <dt>In Words</dt>
+      <dd>{{ frappe.utils.money_in_words(doc.principal) }}</dd>
+    </div>
+  </dl>
+  <table class="table">
+    <caption>Details of Collaterals</caption>
+    <thead>
+      <tr>
+        <th class="text-right">Sl.</th>
+        <th>Item Description</th>
+        <th class="text-right">Qty.</th>
+        <th class="text-right">Wt.</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in doc.collaterals %}
+      <tr>
+        <td class="text-right">{{ loop.index }}</td>
+        <td>
+          {{ item.type }}
+          {% if item.description %}
+          <br /><em>{{ item.description }}</em>
+          {% endif %}
+        </td>
+        <td class="text-right">{{ item.qty }}</td>
+        <td class="text-right">{{ item.wt|round(2) or "-" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <td class="text-right" colspan="2">Total</td>
+      <td class="text-right">{{ doc.collaterals|sum(attribute="qty") }}</td>
+      <td class="text-right">{{ doc.collaterals|sum(attribute="wt")|round(2) or "-" }}</td>
+    </tfoot>
+  </table>
+</div>
+
+<div class="mss_footer">
+  {{ frappe.db.get_value('Terms and Conditions', doc.terms, "terms") or "" }}
+  {% if frappe.user %}
+  <p class="mss_printer">
+    <em>Printed by {{ frappe.db.get_value("User", frappe.user, "first_name") }}</em>
+  </p>
+  {% endif %}
+</div>

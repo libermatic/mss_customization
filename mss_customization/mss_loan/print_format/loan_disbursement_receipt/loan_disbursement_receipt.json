@@ -1,0 +1,23 @@
+{
+ "align_labels_right": 0, 
+ "creation": "2018-03-21 01:40:49.127332", 
+ "css": "@media print {\n  .print-format {\n    height: 189mm;\n  }\n}\n.print-format .mss_header {}\n", 
+ "custom_format": 1, 
+ "disabled": 0, 
+ "doc_type": "Gold Loan", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "font": "Default", 
+ "html": "<!--  will print on A5, hence the print-format height below -->\n\n{% extends \"templates/includes/pf_loan_receipt.html\" %}\n\n{% block header %}{% endblock %}\n", 
+ "idx": 0, 
+ "line_breaks": 0, 
+ "modified": "2018-03-21 03:25:25.016221", 
+ "modified_by": "Administrator", 
+ "module": "MSS Loan", 
+ "name": "Loan Disbursement Receipt", 
+ "owner": "Administrator", 
+ "print_format_builder": 0, 
+ "print_format_type": "Server", 
+ "show_section_headings": 0, 
+ "standard": "Yes"
+}
