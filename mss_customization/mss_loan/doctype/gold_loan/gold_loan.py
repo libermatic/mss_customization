@@ -60,6 +60,7 @@ class GoldLoan(AccountsController):
                     'value': x.value,
                     'description': x.description,
                     'quantity': x.qty,
+                    'weight': x.wt,
                 }
             )
         )
