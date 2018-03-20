@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import unittest
 from mss_customization.utils.transform \
-    import make_period, get_bound_dates, month_diff
+    import make_period, get_bound_dates, month_diff, update
 from datetime import date
 
 
@@ -42,3 +42,9 @@ class TestTransform(unittest.TestCase):
 
     def test_month_diff_negative(self):
         self.assertEqual(month_diff('2017-12-12', '2018-02-15'), -2)
+
+    def test_update(self):
+        input = {'name': 'Nemo'}
+        output = update('ship', 'Nautilus')(input)
+        self.assertEqual(input, {'name': 'Nemo'})
+        self.assertEqual(output, {'name': 'Nemo', 'ship': 'Nautilus'})

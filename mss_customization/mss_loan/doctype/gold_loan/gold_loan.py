@@ -3,7 +3,6 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-from copy import deepcopy
 from functools import partial
 import frappe
 from frappe.utils import cint, add_months
@@ -11,18 +10,11 @@ from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts.doctype.sales_invoice.sales_invoice \
     import get_bank_cash_account
-from mss_customization.utils.fp import compose
 from mss_customization.mss_loan.doctype.loan_collateral.loan_collateral \
     import create_loan_collateral
+from mss_customization.utils.fp import compose
 from mss_customization.utils.queries import get_outstanding
-
-
-def update(key, value):
-    def fn(item):
-        new_item = deepcopy(item)
-        new_item.update({key: value})
-        return new_item
-    return fn
+from mss_customization.utils.transform import update
 
 
 collateral_status_map = {
@@ -110,6 +102,7 @@ class GoldLoan(AccountsController):
                 'account': payment_account.get('account'),
                 'credit': self.principal,
                 'against': self.customer,
+                'remarks': 'Loan disbursed',
             },
         ])
         make_gl_entries(gl_entries, cancel=cancel, adv_adj=0)
@@ -124,6 +117,7 @@ def make_foreclosure_jv(loan_name, posting_date):
         'voucher_type': 'Journal Entry',
         'company': loan.company,
         'posting_date': posting_date,
+        'user_remark': 'Loan foreclosed',
     })
     outstanding = get_outstanding(loan_name)
     je.set('accounts', [

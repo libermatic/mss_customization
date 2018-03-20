@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import today
 from mss_customization.utils.queries import get_paid_interests, get_outstanding
-from mss_customization.utils.transform import month_diff
+from mss_customization.utils.transform import month_diff, update
 
 
 def make_row(current_date):
@@ -53,7 +53,7 @@ def execute(filters=None):
             'name', 'customer', 'principal', 'foreclosure_date', 'interest',
             'posting_date'
         ],
-        filters=filters,
+        filters=update('docstatus', 1)(filters),
         order_by='posting_date',
     )
     data = map(make_row(today()), loans)

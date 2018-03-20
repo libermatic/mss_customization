@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import add_months, cint, getdate
+from frappe.utils import add_months, cint, getdate, fmt_money
 from erpnext.controllers.accounts_controller import AccountsController
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts.doctype.sales_invoice.sales_invoice \
@@ -85,6 +85,7 @@ class LoanPayment(AccountsController):
                     'account': self.payment_account,
                     'debit': self.total_interest,
                     'against': self.customer,
+                    'remarks': self.make_remarks('payment'),
                 },
                 {
                     'account': self.interest_income_account,
@@ -95,6 +96,7 @@ class LoanPayment(AccountsController):
                         'cost_center'
                     ),
                     'against': self.customer,
+                    'remarks': self.make_remarks('interest_income'),
                 }
             ])
         if self.capital_amount > 0:
@@ -103,6 +105,7 @@ class LoanPayment(AccountsController):
                     'account': self.payment_account,
                     'debit': self.capital_amount,
                     'against': self.customer,
+                    'remarks': self.make_remarks('payment'),
                 },
                 {
                     'account': self.loan_account,
@@ -139,3 +142,28 @@ class LoanPayment(AccountsController):
             loan.status = 'Open'
 
         loan.save()
+
+    def make_remarks(self, type):
+        if type == 'payment':
+            if self.capital_amount > 0:
+                return 'Payment received with capital {}'.format(
+                    fmt_money(
+                        self.capital_amount,
+                        precision=0,
+                        currency=frappe.defaults.get_user_default('currency')
+                    )
+                )
+            return 'Payment received'
+        if type == 'interest_income':
+            if self.interest_months == 1:
+                return 'Interest for {}'.format(
+                    self.interests[0].period_label
+                )
+            if self.interest_months > 1:
+                return 'Interests for {} months ({} - {})'.format(
+                    self.interest_months,
+                    self.interests[0].period_label,
+                    self.interests[-1].period_label,
+                )
+            return None
+        return None
