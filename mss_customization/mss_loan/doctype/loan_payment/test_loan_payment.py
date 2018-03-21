@@ -48,7 +48,7 @@ class TestLoanPayment(unittest.TestCase):
         self.assertEqual(payment.total_interest, 1000.0)
 
     def test_adds_proper_interest(self):
-        first = make_loan_payment(loan=self.loan_name_fixture, capital=0)
+        first = make_loan_payment(loan=self.loan_name_fixture, capital_amount=0)
         self.fixtures = [first]
         payment = make_loan_payment(
             loan=self.loan_name_fixture,
@@ -68,7 +68,7 @@ class TestLoanPayment(unittest.TestCase):
         payment = make_loan_payment(
             loan=self.loan_name_fixture,
             interest_months=2,
-            capital=2000,
+            capital_amount=2000,
         )
         self.fixtures = [payment]
         exp_gle = dict((d[0], d) for d in [
@@ -87,7 +87,7 @@ class TestLoanPayment(unittest.TestCase):
 
     def test_raises_validation_error_when_capital_exceeds_outstanding(self):
         with self.assertRaises(frappe.exceptions.ValidationError):
-            make_loan_payment(loan=self.loan_name_fixture, capital=10001)
+            make_loan_payment(loan=self.loan_name_fixture, capital_amount=10001)
 
     def test_extends_foreclosure_date(self):
         first = make_loan_payment(loan=self.loan_name_fixture)
@@ -114,7 +114,10 @@ class TestLoanPayment(unittest.TestCase):
 
     def test_sets_loan_status(self):
         first = make_loan_payment(loan=self.loan_name_fixture)
-        payment = make_loan_payment(loan=self.loan_name_fixture, capital=9000)
+        payment = make_loan_payment(
+            loan=self.loan_name_fixture,
+            capital_amount=9000,
+        )
         self.fixtures = [first, payment]
         status = frappe.get_value(
             'Gold Loan', self.loan_name_fixture, 'status'
@@ -123,7 +126,10 @@ class TestLoanPayment(unittest.TestCase):
 
     def test_sets_loan_status_on_cancel(self):
         first = make_loan_payment(loan=self.loan_name_fixture)
-        payment = make_loan_payment(loan=self.loan_name_fixture, capital=9000)
+        payment = make_loan_payment(
+            loan=self.loan_name_fixture,
+            capital_amount=9000,
+        )
         payment.cancel()
         self.fixtures = [first, payment]
         status = frappe.get_value(
@@ -141,8 +147,8 @@ def make_loan_payment(**kwargs):
         'company': args.company or '_Test Company',
         'interest_months':
             args.interest_months if args.interest_months is not None else 1,
-        'capital':
-            args.capital if args.capital is not None else 1000.0,
+        'capital_amount':
+            args.capital_amount if args.capital_amount is not None else 1000.0,
     })
     if not args.do_not_insert:
         doc.insert()
