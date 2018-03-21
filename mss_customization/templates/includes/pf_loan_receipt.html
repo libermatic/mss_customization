@@ -17,12 +17,23 @@
     padding-top: 0.5em;
     border-top: 1px solid {{ style.border_color }};
   }
-  .print-format h1 {
+  .print-format .mss_title {
     font-size: 1.5em;
     text-align: right;
     padding-bottom: 0.25em;
     padding-right: 1em;
+    margin-bottom: 1em;
     border-bottom: 1px solid {{ style.border_color }};
+  }
+  .print-format .mss_title > * {
+    margin: 0;
+    line-height: 1.5;
+  }
+  .print-format .mss_title > h1 {
+    font-size: 0.75em;
+  }
+  .print-format .mss_title > h2 {
+    font-size: 1.25em;
   }
   .print-format dl {
     display: flex;
@@ -58,7 +69,10 @@
 </div>
 
 <div class="mss_body">
-  <h1>{{ doc.name }}</h1>
+  <div class="mss_title">
+    <h1>Disbursement Receipt</h1>
+    <h2>{{ doc.name }}</h2>
+  </div>
   <dl>
     <div class="mss_half">
       <dt>Loan Date</dt>
@@ -118,9 +132,11 @@
       {% endfor %}
     </tbody>
     <tfoot>
-      <td class="text-right" colspan="2">Total</td>
-      <td class="text-right">{{ doc.collaterals|sum(attribute="qty") }}</td>
-      <td class="text-right">{{ doc.collaterals|sum(attribute="wt")|round(2) or "-" }}</td>
+      <tr>
+        <td class="text-right" colspan="2">Total</td>
+        <td class="text-right">{{ doc.collaterals|sum(attribute="qty") }}</td>
+        <td class="text-right">{{ doc.collaterals|sum(attribute="wt")|round(2) or "-" }}</td>
+      </tr>
     </tfoot>
   </table>
 </div>
