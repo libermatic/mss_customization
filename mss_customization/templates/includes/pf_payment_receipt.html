@@ -1,0 +1,143 @@
+<style>
+  .print-format {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+  @media screen {
+    .print-format {
+      width: 148mm;
+      padding: 10mm;
+      min-height: 210mm;
+    }
+  }
+  .print-format div.mss_body {
+    flex: 1 1 auto;
+  }
+  .print-format div.mss_footer {
+    padding-top: 0.5em;
+    border-top: 1px solid {{ style.border_color }};
+  }
+  .print-format .mss_title {
+    font-size: 1.5em;
+    text-align: right;
+    padding-bottom: 0.25em;
+    padding-right: 1em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid {{ style.border_color }};
+  }
+  .print-format .mss_title > * {
+    margin: 0;
+    line-height: 1.5;
+  }
+  .print-format .mss_title > h1 {
+    font-size: 0.75em;
+  }
+  .print-format .mss_title > h2 {
+    font-size: 1.25em;
+  }
+  .print-format dl {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .print-format dl > div {
+    width: 100%;
+    padding: 0.25em 0;
+  }
+  .print-format dl > div.mss_half {
+    width: 50%;
+  }
+  .print-format dl dt, dl dd {
+    display: inline;
+    font-weight: normal;
+  }
+  .print-format dl dt::after {
+    content: ": ";
+  }
+  .print-format dl dd {
+    font-weight: bold;1
+  }
+  .print-format table caption {
+    color: inherit;
+    text-transform: uppercase;
+  }
+  .print-format table td.mss_no-border {
+    border-top: none;
+  }
+  .print-format .mss_footer > p.mss_printer {
+    font-size: 0.9em;
+  }
+</style>
+<div class="mss_header">
+  {% block header %}{% endblock %}
+</div>
+
+<div class="mss_body">
+  <div class="mss_title">
+    <h1>Payment Receipt</h1>
+    <h2>{{ doc.name }}</h2>
+  </div>
+  <dl>
+    <div class="mss_half">
+      <dt>Loan No</dt>
+      <dd>{{ doc.loan }}</dd>
+    </div>
+    <div class="mss_half">
+      <dt>Date</dt>
+      <dd>{{ doc.get_formatted('posting_date') }}</dd>
+    </div>
+    <div>
+      <dt>Name of Party</dt>
+      <dd>{{ frappe.db.get_value("Customer", doc.customer, "customer_name") }}</dd>
+    </div>
+  </dl>
+  {% if doc.total_interest %}
+    {% if doc.interest_months > 1 %}
+      {% set interest_description = "Interest for {} periods {} - {}".format(doc.interest_months, doc.interests[0].get("period_label"), doc.interests[-1].get("period_label")) %}
+    {% else %}
+      {% set interest_description = "Interest for {}".format(doc.interests[0].get("period_label")) %}
+    {% endif %}
+    {% set interest_row = {"description": interest_description, "amount": doc.get_formatted("total_interest")} %}
+  {% else %}
+    {% set interest_row = None %}
+  {% endif %}
+  {% set capital_row = {"description": "Capital", "amount": doc.get_formatted("capital_amount")} if doc.capital_amount else None%}
+  {% set payments = [interest_row, capital_row]|select %}
+  <table class="table">
+    <caption>Details of Payments</caption>
+    <thead>
+      <tr>
+        <th class="text-right">Sl.</th>
+        <th width="70%">Description</th>
+        <th class="text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in payments %}
+      <tr>
+        <td class="text-right">{{ loop.index }}</td>
+        <td>{{ item.description }}</td>
+        <td class="text-right">{{ item.amount }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td class="text-right" colspan="2">Total</td>
+        <td class="text-right"><strong>{{ doc.get_formatted("total_amount") }}</strong></td>
+      </tr>
+      <tr>
+        <td class="text-right mss_no-border" colspan="3">
+          <em>{{ frappe.utils.money_in_words(doc.total_amount) }}</em>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="mss_footer">
+  {% if frappe.user %}
+  <p class="mss_printer">
+    <em>Printed by {{ frappe.db.get_value("User", frappe.user, "first_name") }}</em>
+  </p>
+  {% endif %}
+</div>
