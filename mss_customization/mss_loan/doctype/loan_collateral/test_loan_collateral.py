@@ -41,11 +41,13 @@ class TestLoanCollateral(unittest.TestCase):
             'value': 12000.0,
             'type': '_Test Type',
             'quantity': 3,
+            'weight': 3.14,
         }
         collateral = create_loan_collateral(params)
         self.assertEquals(collateral.loan, params['loan'])
         self.assertEquals(collateral.value, params['value'])
         self.assertEquals(collateral.type, params['type'])
         self.assertEquals(collateral.quantity, params['quantity'])
-        self.assertEquals(collateral.status, 'Open')
+        self.assertEquals(collateral.weight, params['weight'])
+        self.assertEquals(collateral.status, 'Blocked')
         self.fixture = collateral

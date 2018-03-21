@@ -19,8 +19,9 @@ def create_loan_collateral(opts):
         'value': args.value or 0,
         'type': args.type,
         'quantity': args.quantity,
+        'weight': args.weight,
         'description': args.description,
         'status': 'Blocked',
     })
-    doc.insert()
+    doc.insert(ignore_permissions=True)
     return doc

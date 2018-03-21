@@ -200,7 +200,7 @@ def make_gold_loan(**kwargs):
         'principal': args.principal or 10000.0,
         'interest': args.interest or 5.0,
     })
-    if args.collaterals:
+    if not args.collaterals == None:
         for item in args.collaterals:
             doc.append('collaterals', item)
     else:
