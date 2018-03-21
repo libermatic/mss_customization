@@ -38,6 +38,8 @@ class LoanPayment(AccountsController):
         )
         interest = outstanding * gold_loan.interest / 100.0
         self.total_interest = self.interest_months * interest
+        if not self.capital_amount and not self.total_interest:
+            return frappe.throw('Cannot transaction with zero amount')
         if self.interest_months > 0:
             self.make_interests(gold_loan, interest)
         self.total_amount = self.capital_amount + self.total_interest

@@ -89,6 +89,14 @@ class TestLoanPayment(unittest.TestCase):
         with self.assertRaises(frappe.exceptions.ValidationError):
             make_loan_payment(loan=self.loan_name_fixture, capital_amount=10001)
 
+    def test_raises_validation_error_interest_is_zero(self):
+        with self.assertRaises(frappe.exceptions.ValidationError):
+            make_loan_payment(
+                loan=self.loan_name_fixture,
+                interest_months=0,
+                capital_amount=0
+            )
+
     def test_extends_foreclosure_date(self):
         first = make_loan_payment(loan=self.loan_name_fixture)
         payment = make_loan_payment(loan=self.loan_name_fixture)
