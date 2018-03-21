@@ -11,7 +11,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts.doctype.sales_invoice.sales_invoice \
     import get_bank_cash_account
 from mss_customization.mss_loan.doctype.loan_collateral.loan_collateral \
-    import create_loan_collateral
+    import create_loan_collateral, update_loan_collateral_status
 from mss_customization.utils.fp import compose
 from mss_customization.utils.queries import get_outstanding
 from mss_customization.utils.transform import update
@@ -74,11 +74,9 @@ class GoldLoan(AccountsController):
 
     def on_update_after_submit(self):
         for item in self.collaterals:
-            frappe.set_value(
-                'Loan Collateral',
+            update_loan_collateral_status(
                 item.ref_loan_collateral,
-                'status',
-                collateral_status_map.get(self.status)
+                collateral_status_map.get(self.status),
             )
 
     def get_gl_dict(self, args):

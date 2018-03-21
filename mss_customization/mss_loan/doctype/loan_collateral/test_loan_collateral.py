@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from mss_customization.mss_loan.doctype.loan_collateral.loan_collateral \
-    import create_loan_collateral
+    import create_loan_collateral, update_loan_collateral_status
 from mss_customization.mss_loan.doctype.gold_loan.test_gold_loan \
     import make_gold_loan
 
@@ -51,3 +51,19 @@ class TestLoanCollateral(unittest.TestCase):
         self.assertEquals(collateral.weight, params['weight'])
         self.assertEquals(collateral.status, 'Blocked')
         self.fixture = collateral
+
+    def test_update_loan_collateral_status(self):
+        params = {
+            'loan': self.loan_name,
+            'value': 12000.0,
+            'type': '_Test Type',
+            'quantity': 3,
+        }
+        collateral = create_loan_collateral(params)
+        status = 'Open'
+        update_loan_collateral_status(collateral.name, status)
+
+        self.assertEquals(
+            frappe.get_value('Loan Collateral', collateral.name, 'status'),
+            status,
+        )

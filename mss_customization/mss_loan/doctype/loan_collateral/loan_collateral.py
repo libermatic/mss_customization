@@ -25,3 +25,10 @@ def create_loan_collateral(opts):
     })
     doc.insert(ignore_permissions=True)
     return doc
+
+
+def update_loan_collateral_status(collateral, status):
+    doc = frappe.get_doc('Loan Collateral', collateral)
+    if doc.status != status:
+        doc.update({'status': status})
+        doc._save(ignore_permissions=True)
