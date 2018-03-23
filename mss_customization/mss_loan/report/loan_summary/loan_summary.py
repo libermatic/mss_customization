@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import today
+from frappe.utils import today, add_months
 from mss_customization.utils.queries import get_paid_interests, get_outstanding
 from mss_customization.utils.transform import month_diff, update
 
@@ -14,8 +14,8 @@ def make_row(current_date):
         paid_interests = get_paid_interests(loan.name)
         latest = paid_interests.get('latest')
         last_paid_date = latest.get('period_code').split(' - ')[0] \
-            if latest else loan.posting_date
-        unpaid_months = month_diff(current_date, last_paid_date)
+            if latest else add_months(loan.posting_date, -1)
+        unpaid_months = month_diff(current_date, last_paid_date) - 1
         outstanding = get_outstanding(loan.name)
         interest = outstanding * loan.interest / 100.0
         print(latest)
